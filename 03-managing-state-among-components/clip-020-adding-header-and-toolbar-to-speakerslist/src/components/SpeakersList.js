@@ -1,9 +1,30 @@
 import Speaker from "./Speaker";
 import { data } from "../../SpeakerData";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import ReactPlaceHolder from 'react-placeholder';
 
 function SpeakersList({ showSessions }) {
-  const [speakersData, setSpeakersData] = useState(data);
+  const [speakersData, setSpeakersData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasErrored, setHasErrored] = useState(false);
+  const [error, setError] = useState("");
+
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  useEffect(() => {
+    async function delayFunc() {
+      try {
+    await delay(2000);
+    setIsLoading(false);
+    setSpeakersData(data);
+    } catch (e) {
+      setIsLoading(false);
+      setHasErrored(true);
+      setError(e);
+    }
+  }
+    delayFunc();
+  }, [])
 
   function onFavoriteToggle(id) {
     const speakersRecPrevious = speakersData.find(function (rec) {
@@ -18,8 +39,21 @@ function SpeakersList({ showSessions }) {
     });
     setSpeakersData(speakersDataNew);
   }
+ if (hasErrored === true) {
+  return (
+    <div className="text-danger">
+      ERROR: <b> loading Speaker Data failed {error}</b>
+    </div>
+  )
+ }
+
   return (
     <div className="container speakers-list">
+      <ReactPlaceHolder
+      type="media"
+      rows={15}
+      className="speakerlist-placeholder"
+      ready={isLoading === false}>
       <div className="row">
         {speakersData.map(function (speaker) {
           return <Speaker 
@@ -31,6 +65,7 @@ function SpeakersList({ showSessions }) {
               }}/>;
         })}
       </div>
+      </ReactPlaceHolder>
     </div>
   );
 }
